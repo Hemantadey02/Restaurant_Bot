@@ -1,0 +1,17 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "description": "Frontend for Restaurant Bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.2",
+    "botbuilder": "^4.22.3",
+    "botbuilder-ai": "^4.22.3",
+    "botbuilder-dialogs": "^4.22.3",
+    "dotenv": "^10.0.0",
+    "restify": "^11.1.0"
+  }
+}
