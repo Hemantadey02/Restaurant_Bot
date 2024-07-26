@@ -1,5 +1,7 @@
 const { ComponentDialog, WaterfallDialog, WaterfallStepContext, DialogTurnResult, TextPrompt } = require('botbuilder-dialogs');
+// const { CardFactory } = require('botbuilder-core');
 const axios = require('axios');
+const { createMenuCard } = require('../adaptiveCards/menuCard');
 
 const MENU_DIALOG = 'menuDialog';
 const WATERFALL_DIALOG = 'waterfallDialog';
@@ -26,25 +28,13 @@ class MenuDialog extends ComponentDialog {
     const restaurantId = step.result;
     try {
       const response = await axios.get(`http://localhost:3000/api/restaurants/${restaurantId}/menus`);
-      const menu = response.data;
-    //   console.log(menu);
+      const menuItems = response.data;
+      // console.log(menuItems);
 
-      const card = {
-        type: "AdaptiveCard",
-        body: menu.map(item => ({
-          type: "Container",
-          items: [
-            { type: "TextBlock", text: item.name, weight: "Bolder", size: "Medium" },
-            { type: "TextBlock", text: item.description },
-            { type: "TextBlock", text: `$${item.price.toFixed(2)}`, weight: "Bolder", spacing: "Small" }
-          ]
-        })),
-        actions: [],
-        $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
-        version: "1.2"
-      };
+      const menuCard = createMenuCard(menuItems);
+      // console.log(card);
 
-      await step.context.sendActivity({ attachments: [{ contentType: "application/vnd.microsoft.card.adaptive", content: card }] });
+      await step.context.sendActivity(menuCard);
     } catch (error) {
       await step.context.sendActivity('Sorry, I couldn\'t find any menus for this restaurant.');
     }
