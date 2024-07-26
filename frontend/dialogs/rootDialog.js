@@ -18,7 +18,7 @@ class RootDialog extends ComponentDialog {
   }
 
   async promptForAction(step) {
-    return await step.prompt(TEXT_PROMPT, 'Would you like to make a reservation, place an order, or explore the menu?');
+    return await step.prompt(TEXT_PROMPT, 'Would you like to make a reservation, place an order, or explore the restaurants and menus?');
   }
 
   async routeToDialog(step) {
@@ -30,6 +30,8 @@ class RootDialog extends ComponentDialog {
       return await step.beginDialog('orderDialog');
     } else if (action.includes('menu')) {
       return await step.beginDialog('menuDialog');
+    } else if (action.includes('restaurant')) {
+      return await step.beginDialog('restaurantDialog');
     } else {
       await step.context.sendActivity('I\'m sorry, I didn\'t understand that. Please choose to make a reservation, place an order, or explore the menu.');
       return await step.replaceDialog(ROOT_DIALOG);
