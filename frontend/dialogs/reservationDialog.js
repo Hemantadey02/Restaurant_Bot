@@ -1,5 +1,7 @@
 const { ComponentDialog, WaterfallDialog, WaterfallStepContext, DialogTurnResult, TextPrompt } = require('botbuilder-dialogs');
 const axios = require('axios');
+const { createReservationCard } = require('../adaptiveCards/reservationCard');
+const { showAllReservationCard } = require('../adaptiveCards/showAllReservationCard');
 
 const RESERVATION_DIALOG = 'reservationDialog';
 const WATERFALL_DIALOG = 'waterfallDialog';
@@ -14,7 +16,8 @@ class ReservationDialog extends ComponentDialog {
                 this.promptForRestaurantId.bind(this),
                 this.promptForReservationDate.bind(this),
                 this.promptForSpecialRequests.bind(this),
-                this.makeReservation.bind(this)
+                this.makeReservation.bind(this),
+                this.showReservation.bind(this)
             ]));
 
         this.initialDialogId = WATERFALL_DIALOG;
@@ -40,31 +43,31 @@ class ReservationDialog extends ComponentDialog {
 
         try {
             const response = await axios.post('http://localhost:3000/api/reservations', {
-                // user_id: 1,
+                user_id: 1,
                 restaurant_id: restaurantId,
                 reservation_date: reservationDate,
                 special_requests: specialRequests
             });
+            // console.log(response.data);
+            const reservationCard = createReservationCard(restaurantId, reservationDate, specialRequests);
 
-            const reservation = response.data;
-            const card = {
-                type: "AdaptiveCard",
-                body: [
-                    { type: "TextBlock", text: "Reservation Confirmed", weight: "Bolder", size: "Medium" },
-                    { type: "TextBlock", text: `Restaurant ID: ${reservation.restaurant_id}` },
-                    { type: "TextBlock", text: `Date and Time: ${reservation.reservation_date}` },
-                    { type: "TextBlock", text: `Special Requests: ${reservation.special_requests || 'None'}` }
-                ],
-                actions: [],
-                $schema: "http://adaptivecards.io/schemas/adaptive-card.json",
-                version: "1.2"
-            };
-
-            await step.context.sendActivity({ attachments: [{ contentType: "application/vnd.microsoft.card.adaptive", content: card }] });
+            await step.context.sendActivity(reservationCard);
         } catch (error) {
             await step.context.sendActivity('Sorry, I couldn\'t make a reservation at this time.');
         }
+        return await step.prompt(TEXT_PROMPT, 'Do you want to see all reservations ? (yes or no)');
+    }
 
+    async showReservation(step) {
+        const choice = step.result.toLowerCase();
+        // console.log(choice);
+        if (choice == 'yes') {
+            const response = await axios.get('http://localhost:3000/api/reservations/user/1');
+            const reservations = response.data;
+            // console.log(reservations);
+            const reservationCard = showAllReservationCard(reservations);
+            await step.context.sendActivity(reservationCard);
+        }
         return await step.endDialog();
     }
 }
