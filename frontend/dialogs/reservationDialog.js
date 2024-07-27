@@ -13,7 +13,7 @@ class ReservationDialog extends ComponentDialog {
 
         this.addDialog(new TextPrompt(TEXT_PROMPT))
             .addDialog(new WaterfallDialog(WATERFALL_DIALOG, [
-                this.promptForRestaurantId.bind(this),
+                // this.promptForRestaurantId.bind(this),
                 this.promptForReservationDate.bind(this),
                 this.promptForSpecialRequests.bind(this),
                 this.makeReservation.bind(this),
@@ -38,7 +38,8 @@ class ReservationDialog extends ComponentDialog {
     }
 
     async makeReservation(step) {
-        const { restaurantId, reservationDate } = step.values;
+        const { restaurantId } = step.options;
+        const { reservationDate } = step.values;
         const specialRequests = step.result;
 
         try {
