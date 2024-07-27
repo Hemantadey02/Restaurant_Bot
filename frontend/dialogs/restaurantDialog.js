@@ -1,6 +1,7 @@
 const { ComponentDialog, WaterfallDialog, TextPrompt } = require('botbuilder-dialogs');
 const axios = require('axios');
 const { createRestaurantCard } = require('../adaptiveCards/restaurantCard');
+const { MessageFactory } = require('botbuilder-core');
 
 const RESTAURANT_DIALOG = 'restaurantDialog';
 const WATERFALL_DIALOG = 'waterfallDialog';
@@ -24,17 +25,29 @@ class RestaurantDialog extends ComponentDialog {
     // }
 
     async searchRestaurants(step) {
-        // const cuisine = step.result;
-        const response = await axios.get(`http://localhost:3000/api/restaurants`);
-        const restaurants = response.data;
-        // console.log(restaurants);
+        try {
+            // const cuisine = step.result;
+            const response = await axios.get(`http://localhost:3000/api/restaurants`);
+            const restaurants = response.data;
+            // console.log(restaurants);
 
-        if (restaurants) {
-            let message = 'Here are some restaurants I found: \n';
-            const restaurantCard = createRestaurantCard(restaurants);
-            await step.context.sendActivity(message);
-            await step.context.sendActivity(restaurantCard);
-        } else {
+            if (restaurants && restaurants.length > 0) {
+                const attachments = restaurants.map((restaurant) => {
+                    const card = createRestaurantCard(restaurant);
+                    const attachment = {
+                        contentType: "application/vnd.microsoft.card.adaptive",
+                        content: card,
+                    };
+                    return attachment;
+                });
+                // console.log(attachments);
+                let message = 'Here are some restaurants I found : ';
+                await step.context.sendActivity(message);
+                await step.context.sendActivity({ attachments });
+            } else {
+                await step.context.sendActivity('Sorry, I couldn\'t find any restaurants matching your criteria.');
+            }
+        } catch (err) {
             await step.context.sendActivity('Sorry, I couldn\'t find any restaurants matching your criteria.');
         }
 
